@@ -14,7 +14,7 @@ def generate_launch_description():
 
 
     mujoco = Node(
-        package    = "mujoco_ros2_example",
+        package    = "mujoco_ros2_nodes",
         executable = "mujoco_node",
         output     = "screen",
         arguments  = [xmlScenePath],
