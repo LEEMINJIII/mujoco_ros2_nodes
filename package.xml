@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
 
-   <name>mujoco_ros2_example</name>
+   <name>mujoco_ros2_nodes</name>
    <version>0.0.0</version>
    <description>Provides ROS2 communication with MuJoCo simulation.</description>
    <maintainer email="jonathan.woolfrey@gmail.com">Woolfrey</maintainer>
