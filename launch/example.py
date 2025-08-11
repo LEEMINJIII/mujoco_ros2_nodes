@@ -7,7 +7,7 @@ def generate_launch_description():
 
     directory = get_package_share_directory('mujoco_ros2_nodes')                                          # Gets relative path of mujoco_ros2 package    
     
-    xmlScenePath =  os.path.join(directory, 'model', 'scene.xml')
+    xmlScenePath =  os.path.join(directory, 'model', 'oneDof.xml')
     
     if not os.path.exists(xmlScenePath):
         raise FileNotFoundError(f"Scene file does not exist: {xmlScenePath}.")
