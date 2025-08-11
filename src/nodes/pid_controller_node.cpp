@@ -83,3 +83,12 @@ void PIDControllerNode::compute_and_publish_command()
 
     joint_command_pub_->publish(cmd_msg);
 }
+
+int main(int argc, char * argv[])
+{
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<PIDControllerNode>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
