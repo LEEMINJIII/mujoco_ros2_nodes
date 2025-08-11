@@ -35,7 +35,7 @@ target_link_libraries(mujoco_node mujoco glfw)                                  
                                      
 ament_target_dependencies(mujoco_node rclcpp sensor_msgs std_msgs)                                  # List ROS2 dependencies for this executable
 
-add_executable(pid_controller_node src/pid_controller_node.cpp)
+add_executable(pid_controller_node src/nodes/pid_controller_node.cpp)
 ament_target_dependencies(pid_controller_node rclcpp sensor_msgs std_msgs)
 
 ####################################################################################################
