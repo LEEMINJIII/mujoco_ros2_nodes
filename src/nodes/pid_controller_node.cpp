@@ -20,7 +20,7 @@ PIDControllerNode::PIDControllerNode()
         std::bind(&PIDControllerNode::compute_and_publish_command, this)
     );
 
-    // 파라미터 변경 감지
+    // 파라미터 변경 감지 콜백 (수정됨)
     this->add_on_set_parameters_callback(
         [this](const std::vector<rclcpp::Parameter> &params) {
             for (const auto &p : params) {
@@ -29,7 +29,10 @@ PIDControllerNode::PIDControllerNode()
                 else if (p.get_name() == "kd") kd_ = p.as_double();
                 else if (p.get_name() == "target_positions") target_positions_ = p.as_double_array();
             }
-            return rcl_interfaces::msg::SetParametersResult{true, ""};
+            rcl_interfaces::msg::SetParametersResult result;
+            result.successful = true;
+            result.reason = "";
+            return result;
         }
     );
 }
