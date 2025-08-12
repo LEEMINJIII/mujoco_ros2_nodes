@@ -36,7 +36,7 @@ PIDControllerNode::PIDControllerNode()
         }
     );
   */
-      this->add_on_set_parameters_callback(
+    this->add_on_set_parameters_callback(
         [this](const std::vector<rclcpp::Parameter> &params) {
             for (const auto &p : params) {
                 if (p.get_name() == "kp") kp_ = p.as_double();
