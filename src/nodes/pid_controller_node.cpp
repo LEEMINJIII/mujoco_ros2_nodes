@@ -7,7 +7,7 @@ PIDControllerNode::PIDControllerNode()
     declare_and_get_params();
 
     joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/joint_states", 10,
+        "/joint_state", 10,
         std::bind(&PIDControllerNode::joint_state_callback, this, std::placeholders::_1)
     );
 
