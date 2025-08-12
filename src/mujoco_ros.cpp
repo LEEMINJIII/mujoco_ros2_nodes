@@ -120,16 +120,27 @@ void MuJoCoROS::update_simulation()
         return;
     }
 
-    if (_controlMode == TORQUE)
+    switch (_controlMode)
     {
-        for (int i = 0; i < _model->nq; ++i)
-        {
-            _jointState->ctrl[i] = _torqueInput[i]                                                  // Transfer torque input
-                                 + _jointState->qfrc_bias[i]                                        // Compensate for gravity
-                                 - 0.01*_jointState->qvel[i];                                       // Add some damping
-                                 
-            _torqueInput[i] = 0.0;                                                                  // Clear value
-        }
+        case POSITION:
+            for (int i = 0; i < _model->nq; ++i) {
+                _jointState->ctrl[i] = last_joint_commands_[i];
+            }
+            break;
+        case VELOCITY:
+            for (int i = 0; i < _model->nq; ++i) {
+                _jointState->ctrl[i] += last_joint_commands_[i] / (double)_simFrequency;
+            }
+            break;
+        case TORQUE:
+            for (int i = 0; i < _model->nq; ++i) {
+                _torqueInput[i] = last_joint_commands_[i];
+            }
+            break;
+        default:
+            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                                 "Unknown control mode in simulation update.");
+            break;
     }
 
     mj_step(_model, _jointState);                                                                   // Take a step in the simulation
@@ -150,6 +161,20 @@ void MuJoCoROS::update_simulation()
   ////////////////////////////////////////////////////////////////////////////////////////////////////
  //                                    Handle joint commands                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+void MuJoCoROS::joint_command_callback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
+{
+    if (msg->data.size() != _model->nq)
+    {
+        RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                             "Received joint command with incorrect size.");
+        return;
+    }
+
+    // 단순히 받은 데이터를 저장
+    last_joint_commands_ = msg->data;
+}
+
+/**
 void
 MuJoCoROS::joint_command_callback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
 {
@@ -196,7 +221,7 @@ MuJoCoROS::joint_command_callback(const std_msgs::msg::Float64MultiArray::Shared
         }
     }
 }
-
+**/
   ////////////////////////////////////////////////////////////////////////////////////////////////////
  //                                    Update the 3D simulation                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
