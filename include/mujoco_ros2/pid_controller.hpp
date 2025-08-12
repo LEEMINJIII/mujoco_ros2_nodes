@@ -30,6 +30,8 @@ private:
     // Latest joint states
     std::vector<double> current_positions_;
     bool state_received_;
+    rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr parameter_callback_handle_;
+  // 기타 멤버 변수...
 };
 
 #endif
