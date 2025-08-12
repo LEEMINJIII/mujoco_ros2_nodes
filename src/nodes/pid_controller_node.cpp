@@ -51,7 +51,7 @@ PIDControllerNode::PIDControllerNode()
         }
     );
 }
-}
+
 
 void PIDControllerNode::declare_and_get_params()
 {
