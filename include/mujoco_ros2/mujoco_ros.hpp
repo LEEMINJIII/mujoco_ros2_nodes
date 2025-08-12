@@ -56,7 +56,7 @@ class MuJoCoROS: public rclcpp::Node
         std::vector<double> _torqueInput;                                                           ///< Used to store joint commands in torque mode
         
         ControlMode _controlMode;                                                                   ///< POSITION, VELOCITY, or TORQUE
-        
+        std::vector<double> last_joint_commands_;
         mjModel *_model;                                                                            ///< Underlying model of the robot.
         mjData  *_jointState;                                                                       ///< Joint state data (position, velocity, acceleration)
 
