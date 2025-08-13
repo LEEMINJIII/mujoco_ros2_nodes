@@ -164,25 +164,46 @@ void MuJoCoROS::update_simulation()
 void MuJoCoROS::joint_command_callback(
     const std_msgs::msg::Float64MultiArray::SharedPtr msg)
 {
-    // 1. 시뮬레이터 초기화 상태 확인
-    if (!mjData || !_model) {
-        RCLCPP_ERROR(this->get_logger(), "MuJoCo data/model not initialized yet.");
+    // 1) 모델/데이터 초기화 확인
+    if (!_model || !_jointState) {
+        RCLCPP_ERROR(this->get_logger(), "MuJoCo model/data not initialized yet.");
         return;
     }
 
-    // 2. 받은 명령 크기 확인
-    if (msg->data.size() < _model->nu) { // nu: control inputs (actuators) 개수
-        RCLCPP_ERROR(this->get_logger(), 
-            "Joint command size (%zu) does not match expected actuator count (%d).",
-            msg->data.size(), _model->nu);
+    // 2) 명령 크기 확인 (TORQUE 기준: actuator 개수 nu)
+    const int nu = _model->nu;  // 제어 입력(액추에이터) 개수
+    if (static_cast<int>(msg->data.size()) != nu) {
+        RCLCPP_WARN(this->get_logger(),
+            "Joint command size (%zu) != actuator count (%d). Ignoring.",
+            msg->data.size(), nu);
         return;
     }
 
-    // 3. 안전하게 값 복사
-    for (int i = 0; i < _model->nu; ++i) {
-        mjData->ctrl[i] = msg->data[i];
+    // 3) 제어 모드별 적용
+    switch (_controlMode)
+    {
+        case TORQUE:
+            // 토크는 보통 별도 버퍼에 저장해 step에서 적용하는 패턴
+            for (int i = 0; i < nu; ++i)
+                _torqueInput[i] = msg->data[i];
+            break;
+
+        case POSITION:
+            for (int i = 0; i < nu; ++i)
+                _jointState->ctrl[i] = msg->data[i];
+            break;
+
+        case VELOCITY:
+            for (int i = 0; i < nu; ++i)
+                _jointState->ctrl[i] += msg->data[i] / static_cast<double>(_simFrequency);
+            break;
+
+        default:
+            RCLCPP_WARN(this->get_logger(), "Unknown control mode.");
+            break;
     }
 }
+
 
 
 /**
