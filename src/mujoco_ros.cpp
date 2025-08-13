@@ -163,15 +163,12 @@ void MuJoCoROS::update_simulation()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void MuJoCoROS::joint_command_callback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
 {
-    if (msg->data.size() != _model->nq)
-    {
-        RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
-                             "Received joint command with incorrect size.");
-        return;
+    if (msg->effort.size() > 0) {
+        mjData->ctrl[0] = msg->effort[0];  // torque 제어
     }
 
     // 단순히 받은 데이터를 저장
-    last_joint_commands_ = msg->data;
+    //last_joint_commands_ = msg->data;
 }
 
 /**
