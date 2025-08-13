@@ -43,6 +43,8 @@ MuJoCoROS::MuJoCoROS(const std::string &xmlLocation) : Node("mujoco_node")
     _jointStateMessage.velocity.resize(_model->nq);
     _jointStateMessage.effort.resize(_model->nq);    
     _torqueInput.resize(_model->nq, 0.0);
+    last_joint_commands_.resize(_model->nu, 0.0);
+
 
     // Record joint names
     for (int i = 0; i < _model->nq; ++i) _jointStateMessage.name[i] = mj_id2name(_model, mjOBJ_JOINT, i);
