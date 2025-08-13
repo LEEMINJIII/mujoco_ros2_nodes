@@ -15,6 +15,9 @@
              <joint name="J1" type="hinge" pos="-.3 0 0" axis="0 1 0" damping="1"/>
         </body>
     </worldbody>
+	<actuator>
+        <motor joint="J1" ctrlrange="-10 10" gear="100"/>
+    </actuator>
 </mujoco>
   
 
