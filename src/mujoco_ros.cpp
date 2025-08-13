@@ -153,6 +153,7 @@ void MuJoCoROS::update_simulation()
         _jointStateMessage.velocity[i] = _jointState->qvel[i];
         _jointStateMessage.effort[i] = _jointState->actuator_force[i];
     }
+    RCLCPP_INFO(this->get_logger(), "Current joint position (rad): %f", _jointState->qpos[0]);
 
     _jointStateMessage.header.stamp = this->get_clock()->now();
     _jointStatePublisher->publish(_jointStateMessage);
