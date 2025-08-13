@@ -161,17 +161,29 @@ void MuJoCoROS::update_simulation()
   ////////////////////////////////////////////////////////////////////////////////////////////////////
  //                                    Handle joint commands                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void MuJoCoROS::joint_command_callback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
+void MuJoCoROS::joint_command_callback(
+    const std_msgs::msg::Float64MultiArray::SharedPtr msg)
 {
-    if (msg->data.size() != _model->nq) {
-        RCLCPP_WARN(this->get_logger(), "Received joint command with incorrect size.");
+    // 1. 시뮬레이터 초기화 상태 확인
+    if (!mjData || !_model) {
+        RCLCPP_ERROR(this->get_logger(), "MuJoCo data/model not initialized yet.");
         return;
     }
 
-    for (size_t i = 0; i < msg->data.size(); ++i) {
-        _torqueInput[i] = msg->data[i];
+    // 2. 받은 명령 크기 확인
+    if (msg->data.size() < _model->nu) { // nu: control inputs (actuators) 개수
+        RCLCPP_ERROR(this->get_logger(), 
+            "Joint command size (%zu) does not match expected actuator count (%d).",
+            msg->data.size(), _model->nu);
+        return;
+    }
+
+    // 3. 안전하게 값 복사
+    for (int i = 0; i < _model->nu; ++i) {
+        mjData->ctrl[i] = msg->data[i];
     }
 }
+
 
 /**
 void
