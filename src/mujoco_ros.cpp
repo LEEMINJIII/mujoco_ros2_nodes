@@ -114,49 +114,48 @@ MuJoCoROS::MuJoCoROS(const std::string &xmlLocation) : Node("mujoco_node")
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void MuJoCoROS::update_simulation()
 {
-    if (not _model and not _jointState)
+    if (!_model || !_jointState)
     {
-        RCLCPP_ERROR(this->get_logger(), "MuJoCo model or data is not initialized. How did that happen?");
+        RCLCPP_ERROR(this->get_logger(), "MuJoCo model or data is not initialized.");
         return;
     }
 
     switch (_controlMode)
     {
         case POSITION:
-            for (int i = 0; i < _model->nq; ++i) {
+            for (int i = 0; i < _model->nu; ++i)
                 _jointState->ctrl[i] = last_joint_commands_[i];
-            }
             break;
+
         case VELOCITY:
-            for (int i = 0; i < _model->nq; ++i) {
-                _jointState->ctrl[i] += last_joint_commands_[i] / (double)_simFrequency;
-            }
+            for (int i = 0; i < _model->nu; ++i)
+                _jointState->ctrl[i] += last_joint_commands_[i] / static_cast<double>(_simFrequency);
             break;
+
         case TORQUE:
-            for (int i = 0; i < _model->nq; ++i) {
-                _torqueInput[i] = last_joint_commands_[i];
-            }
+            for (int i = 0; i < _model->nu; ++i)
+                _jointState->ctrl[i] = last_joint_commands_[i];
             break;
+
         default:
             RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
-                                 "Unknown control mode in simulation update.");
+                "Unknown control mode in simulation update.");
             break;
     }
 
-    mj_step(_model, _jointState);                                                                   // Take a step in the simulation
+    mj_step(_model, _jointState);
 
-    // Add joint state data to ROS2 message
     for (int i = 0; i < _model->nq; ++i)
     {
         _jointStateMessage.position[i] = _jointState->qpos[i];
         _jointStateMessage.velocity[i] = _jointState->qvel[i];
-        _jointStateMessage.effort[i]   = _jointState->actuator_force[i];
+        _jointStateMessage.effort[i] = _jointState->actuator_force[i];
     }
 
-    _jointStateMessage.header.stamp = this->get_clock()->now();                                     // Add current time stamp (for rqt)
-    
-    _jointStatePublisher->publish(_jointStateMessage);                                              // Publish the joint state message
+    _jointStateMessage.header.stamp = this->get_clock()->now();
+    _jointStatePublisher->publish(_jointStateMessage);
 }
+
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
  //                                    Handle joint commands                                       //
@@ -164,44 +163,24 @@ void MuJoCoROS::update_simulation()
 void MuJoCoROS::joint_command_callback(
     const std_msgs::msg::Float64MultiArray::SharedPtr msg)
 {
-    // 1) 모델/데이터 초기화 확인
-    if (!_model || !_jointState) {
+    
+    if (!_model || !_jointState)
+    {
         RCLCPP_ERROR(this->get_logger(), "MuJoCo model/data not initialized yet.");
         return;
     }
 
-    // 2) 명령 크기 확인 (TORQUE 기준: actuator 개수 nu)
-    const int nu = _model->nu;  // 제어 입력(액추에이터) 개수
-    if (static_cast<int>(msg->data.size()) != nu) {
+    if (static_cast<int>(msg->data.size()) != _model->nu)
+    {
         RCLCPP_WARN(this->get_logger(),
-            "Joint command size (%zu) != actuator count (%d). Ignoring.",
-            msg->data.size(), nu);
+            "Received joint command size (%zu) does not match actuator count (%d). Ignoring.",
+            msg->data.size(), _model->nu);
         return;
     }
 
-    // 3) 제어 모드별 적용
-    switch (_controlMode)
-    {
-        case TORQUE:
-            // 토크는 보통 별도 버퍼에 저장해 step에서 적용하는 패턴
-            for (int i = 0; i < nu; ++i)
-                _torqueInput[i] = msg->data[i];
-            break;
+    for (int i = 0; i < _model->nu; ++i)
+        last_joint_commands_[i] = msg->data[i];
 
-        case POSITION:
-            for (int i = 0; i < nu; ++i)
-                _jointState->ctrl[i] = msg->data[i];
-            break;
-
-        case VELOCITY:
-            for (int i = 0; i < nu; ++i)
-                _jointState->ctrl[i] += msg->data[i] / static_cast<double>(_simFrequency);
-            break;
-
-        default:
-            RCLCPP_WARN(this->get_logger(), "Unknown control mode.");
-            break;
-    }
 }
 
 
