@@ -55,9 +55,9 @@ PIDControllerNode::PIDControllerNode()
 
 void PIDControllerNode::declare_and_get_params()
 {
-    this->declare_parameter<double>("kp", 10.0);
+    this->declare_parameter<double>("kp", 3.0);
     this->declare_parameter<double>("ki", 0.0);
-    this->declare_parameter<double>("kd", 2.0);
+    this->declare_parameter<double>("kd", 3.0);
     this->declare_parameter<std::vector<double>>("target_positions", {0.0});
 
     kp_ = this->get_parameter("kp").as_double();
